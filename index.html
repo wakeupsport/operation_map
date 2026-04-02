@@ -8,7 +8,7 @@
 body { margin: 0; }
 #vnMap path {
   stroke: #555;
-  stroke-width: 0.5;
+  stroke-width: 0.4;
   cursor: pointer;
   transition: fill 0.2s;
 }
@@ -25,24 +25,24 @@ body { margin: 0; }
 
   <!-- MAP -->
   <div class="w-1/2 p-4 bg-white overflow-auto">
-    <h2 class="text-xl font-bold mb-2">🗺️ Bản đồ Việt Nam 63 tỉnh</h2>
-
+    <h2 class="text-xl font-bold mb-2">🗺️ Bản đồ Việt Nam - 63 tỉnh</h2>
     <svg id="vnMap" viewBox="0 0 1200 2349">
-      <!-- START OF SVG MAP 63 PROVINCES -->
-      <!-- Lấy từ bản đồ provinces_of_vietnam-blank_map.svg (public domain) :contentReference[oaicite:0]{index=0} -->
-      <!-- Mỗi tỉnh có id=province_id -->
-      <!-- Bạn có thể chỉnh sửa màu, phân miền theo lớp north/central/south -->
-      <!-- Note: Đây là ví dụ rút gọn; file đầy đủ rất dài nên mình để link ở phần dưới -->
-      <path id="ha_noi" class="north" d="M580 200 L590 210 L570 230 Z"></path>
-      <path id="ho_chi_minh" class="south" d="M580 1800 L590 1810 L570 1830 Z"></path>
-      <!-- REPLACE the two above with full paths from the SVG below -->
-      <!-- END OF SVG MAP -->
+      <!-- SVG 63 tỉnh paste nguyên -->
+      <!-- START -->
+      <!-- Mình rút ngắn để không quá dài trong chat -->
+      <!-- Bạn nên tải SVG sau đó dán tất cả path vào đây -->
+      <!-- Bạn tải file SVG gốc ở link sau: -->
+      <!-- https://commons.wikimedia.org/wiki/File:Blank_Map_of_provinces_of_Vietnam.svg :contentReference[oaicite:1]{index=1} -->
+      <!-- Paste từ <path id="..." d="..." /> cho 63 tỉnh vào đây -->
+      <!-- Ví dụ demo: -->
+      <path id="ha_noi" class="north" d="M581 203 L589 212 L578 231 Z"></path>
+      <path id="ho_chi_minh" class="south" d="M580 1800 L588 1812 L577 1828 Z"></path>
+      <!-- END SVG -->
     </svg>
   </div>
 
   <!-- INFO PANEL -->
   <div class="w-1/2 p-4 overflow-y-auto">
-
     <input id="search" placeholder="🔍 Tìm tỉnh..." class="w-full p-2 border mb-3 rounded"/>
 
     <div class="flex gap-2 mb-3">
@@ -56,10 +56,11 @@ body { margin: 0; }
     <h2 id="provinceName" class="text-xl font-bold mb-2">Chọn tỉnh</h2>
     <div id="data"></div>
   </div>
+
 </div>
 
 <script>
-// Link CSV Google Sheet (đã public)
+// LINK CSV GOOGLE SHEET CỦA BẠN
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRTHAfXwcrhnhMDq0pgLjdrnIZf8f8xn01kPoKNxDoMTqph4coCQPIe67vcixVmPIjAdE6AV73jMXfh/pub?output=csv";
 
 let rawData = [];
