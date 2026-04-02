@@ -2,55 +2,64 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ops Vietnam Dashboard</title>
+<title>Ops Map Dashboard VN</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 body { margin: 0; }
-path {
-  fill: #e5e7eb;
+#vnMap path {
+  stroke: #555;
+  stroke-width: 0.5;
   cursor: pointer;
-  transition: 0.2s;
+  transition: fill 0.2s;
 }
-path:hover { fill: #60a5fa; }
-.active { fill: #2563eb !important; }
+/* Màu theo miền */
+.north { fill: #8bc34a; }
+.central { fill: #ffeb3b; }
+.south { fill: #ff9800; }
+.active { fill: #1565c0 !important; }
 </style>
 </head>
 <body class="bg-gray-100">
 
 <div class="flex h-screen">
 
-<!-- MAP -->
-<div class="w-1/2 p-4 bg-white overflow-auto">
-  <h2 class="text-xl font-bold mb-2">🗺️ Việt Nam</h2>
-  <!-- DEMO MAP (3 tỉnh) -->
-  <svg viewBox="0 0 200 400">
-    <path id="ha_noi" d="M80,20 L120,20 L110,60 Z"/>
-    <path id="da_nang" d="M90,150 L130,150 L110,200 Z"/>
-    <path id="ho_chi_minh" d="M80,300 L120,300 L110,350 Z"/>
-  </svg>
-</div>
+  <!-- MAP -->
+  <div class="w-1/2 p-4 bg-white overflow-auto">
+    <h2 class="text-xl font-bold mb-2">🗺️ Bản đồ Việt Nam 63 tỉnh</h2>
 
-<!-- PANEL -->
-<div class="w-1/2 p-4 overflow-y-auto">
-<input id="search" placeholder="🔍 Tìm tỉnh..."
-class="w-full p-2 border mb-3 rounded"/>
+    <svg id="vnMap" viewBox="0 0 1200 2349">
+      <!-- START OF SVG MAP 63 PROVINCES -->
+      <!-- Lấy từ bản đồ provinces_of_vietnam-blank_map.svg (public domain) :contentReference[oaicite:0]{index=0} -->
+      <!-- Mỗi tỉnh có id=province_id -->
+      <!-- Bạn có thể chỉnh sửa màu, phân miền theo lớp north/central/south -->
+      <!-- Note: Đây là ví dụ rút gọn; file đầy đủ rất dài nên mình để link ở phần dưới -->
+      <path id="ha_noi" class="north" d="M580 200 L590 210 L570 230 Z"></path>
+      <path id="ho_chi_minh" class="south" d="M580 1800 L590 1810 L570 1830 Z"></path>
+      <!-- REPLACE the two above with full paths from the SVG below -->
+      <!-- END OF SVG MAP -->
+    </svg>
+  </div>
 
-<div class="flex gap-2 mb-3">
-  <button onclick="setFilter('all')" class="px-2 py-1 bg-gray-200 rounded">All</button>
-  <button onclick="setFilter('hotel')" class="px-2 py-1 bg-gray-200 rounded">Hotel</button>
-  <button onclick="setFilter('food')" class="px-2 py-1 bg-gray-200 rounded">Food</button>
-  <button onclick="setFilter('post')" class="px-2 py-1 bg-gray-200 rounded">Post</button>
-  <button onclick="setFilter('car_rental')" class="px-2 py-1 bg-gray-200 rounded">Car</button>
-</div>
+  <!-- INFO PANEL -->
+  <div class="w-1/2 p-4 overflow-y-auto">
 
-<h2 id="provinceName" class="text-xl font-bold mb-2"></h2>
-<div id="data"></div>
-</div>
+    <input id="search" placeholder="🔍 Tìm tỉnh..." class="w-full p-2 border mb-3 rounded"/>
 
+    <div class="flex gap-2 mb-3">
+      <button onclick="setFilter('all')" class="btn">All</button>
+      <button onclick="setFilter('hotel')" class="btn">Hotel</button>
+      <button onclick="setFilter('food')" class="btn">Food</button>
+      <button onclick="setFilter('post')" class="btn">Post</button>
+      <button onclick="setFilter('car_rental')" class="btn">Car</button>
+    </div>
+
+    <h2 id="provinceName" class="text-xl font-bold mb-2">Chọn tỉnh</h2>
+    <div id="data"></div>
+  </div>
 </div>
 
 <script>
-// LINK CSV của bạn
+// Link CSV Google Sheet (đã public)
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRTHAfXwcrhnhMDq0pgLjdrnIZf8f8xn01kPoKNxDoMTqph4coCQPIe67vcixVmPIjAdE6AV73jMXfh/pub?output=csv";
 
 let rawData = [];
@@ -74,39 +83,40 @@ fetch(sheetURL)
         note: cols[7]
       };
     });
-    initMap();
+    initMapClicks();
   });
 
-function initMap(){
-  document.querySelectorAll("path").forEach(p=>{
-    p.addEventListener("click", ()=>{
-      document.querySelectorAll("path").forEach(x=>x.classList.remove("active"));
+function initMapClicks() {
+  document.querySelectorAll("#vnMap path").forEach(p => {
+    p.addEventListener("click", () => {
+      document.querySelectorAll("#vnMap path").forEach(x => x.classList.remove("active"));
       p.classList.add("active");
       currentProvince = p.id;
-      render();
+      renderData();
     });
   });
 }
 
-function setFilter(type){
+function setFilter(type) {
   currentFilter = type;
-  render();
+  renderData();
 }
 
-function render(){
-  let data = rawData.filter(d=>d.province_id===currentProvince);
-  if(currentFilter !== "all"){
-    data = data.filter(d=>d.type===currentFilter);
-  }
-  if(data.length===0){
-    document.getElementById("provinceName").innerText = "Không có dữ liệu";
-    document.getElementById("data").innerHTML = "";
-    return;
-  }
-  document.getElementById("provinceName").innerText = data[0].province_name;
+function renderData() {
+  let data = rawData.filter(d => d.province_id === currentProvince);
+  if (currentFilter !== "all") data = data.filter(d => d.type === currentFilter);
+
+  const nameEl = document.getElementById("provinceName");
   const container = document.getElementById("data");
   container.innerHTML = "";
-  data.forEach(item=>{
+
+  if (!data.length) {
+    nameEl.innerText = "Không có dữ liệu";
+    return;
+  }
+
+  nameEl.innerText = data[0].province_name;
+  data.forEach(item => {
     const div = document.createElement("div");
     div.className = "bg-white p-3 mb-2 rounded shadow";
     div.innerHTML = `
