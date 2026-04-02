@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ops Vietnam Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { margin: 0; }
+path {
+  fill: #e5e7eb;
+  cursor: pointer;
+  transition: 0.2s;
+}
+path:hover { fill: #60a5fa; }
+.active { fill: #2563eb !important; }
+</style>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+
+<!-- MAP -->
+<div class="w-1/2 p-4 bg-white overflow-auto">
+  <h2 class="text-xl font-bold mb-2">🗺️ Việt Nam</h2>
+  <!-- DEMO MAP (3 tỉnh) -->
+  <svg viewBox="0 0 200 400">
+    <path id="ha_noi" d="M80,20 L120,20 L110,60 Z"/>
+    <path id="da_nang" d="M90,150 L130,150 L110,200 Z"/>
+    <path id="ho_chi_minh" d="M80,300 L120,300 L110,350 Z"/>
+  </svg>
+</div>
+
+<!-- PANEL -->
+<div class="w-1/2 p-4 overflow-y-auto">
+<input id="search" placeholder="🔍 Tìm tỉnh..."
+class="w-full p-2 border mb-3 rounded"/>
+
+<div class="flex gap-2 mb-3">
+  <button onclick="setFilter('all')" class="px-2 py-1 bg-gray-200 rounded">All</button>
+  <button onclick="setFilter('hotel')" class="px-2 py-1 bg-gray-200 rounded">Hotel</button>
+  <button onclick="setFilter('food')" class="px-2 py-1 bg-gray-200 rounded">Food</button>
+  <button onclick="setFilter('post')" class="px-2 py-1 bg-gray-200 rounded">Post</button>
+  <button onclick="setFilter('car_rental')" class="px-2 py-1 bg-gray-200 rounded">Car</button>
+</div>
+
+<h2 id="provinceName" class="text-xl font-bold mb-2"></h2>
+<div id="data"></div>
+</div>
+
+</div>
+
+<script>
+// LINK CSV của bạn
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRTHAfXwcrhnhMDq0pgLjdrnIZf8f8xn01kPoKNxDoMTqph4coCQPIe67vcixVmPIjAdE6AV73jMXfh/pub?output=csv";
+
+let rawData = [];
+let currentProvince = "";
+let currentFilter = "all";
+
+fetch(sheetURL)
+  .then(res => res.text())
+  .then(csv => {
+    const rows = csv.split("\n").slice(1);
+    rawData = rows.map(r => {
+      const cols = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+      return {
+        province_id: cols[0],
+        province_name: cols[1],
+        type: cols[2],
+        name: cols[3],
+        address: cols[4],
+        phone: cols[5],
+        map_link: cols[6],
+        note: cols[7]
+      };
+    });
+    initMap();
+  });
+
+function initMap(){
+  document.querySelectorAll("path").forEach(p=>{
+    p.addEventListener("click", ()=>{
+      document.querySelectorAll("path").forEach(x=>x.classList.remove("active"));
+      p.classList.add("active");
+      currentProvince = p.id;
+      render();
+    });
+  });
+}
+
+function setFilter(type){
+  currentFilter = type;
+  render();
+}
+
+function render(){
+  let data = rawData.filter(d=>d.province_id===currentProvince);
+  if(currentFilter !== "all"){
+    data = data.filter(d=>d.type===currentFilter);
+  }
+  if(data.length===0){
+    document.getElementById("provinceName").innerText = "Không có dữ liệu";
+    document.getElementById("data").innerHTML = "";
+    return;
+  }
+  document.getElementById("provinceName").innerText = data[0].province_name;
+  const container = document.getElementById("data");
+  container.innerHTML = "";
+  data.forEach(item=>{
+    const div = document.createElement("div");
+    div.className = "bg-white p-3 mb-2 rounded shadow";
+    div.innerHTML = `
+      <b>${item.name}</b><br>
+      ${item.address}<br>
+      ${item.phone || ""}<br>
+      <a href="${item.map_link}" target="_blank" class="text-blue-500">📍 Map</a><br>
+      <i>${item.note || ""}</i>
+    `;
+    container.appendChild(div);
+  });
+}
+</script>
+
+</body>
+</html>
